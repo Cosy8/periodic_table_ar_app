@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.ar.core.examples.java.augmentedimage;
+package periodictable.augmentedimage;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -38,13 +38,13 @@ import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Session;
-import com.google.ar.core.examples.java.augmentedimage.rendering.AugmentedImageRenderer;
-import com.google.ar.core.examples.java.common.helpers.CameraPermissionHelper;
-import com.google.ar.core.examples.java.common.helpers.DisplayRotationHelper;
-import com.google.ar.core.examples.java.common.helpers.FullScreenHelper;
-import com.google.ar.core.examples.java.common.helpers.SnackbarHelper;
-import com.google.ar.core.examples.java.common.helpers.TrackingStateHelper;
-import com.google.ar.core.examples.java.common.rendering.BackgroundRenderer;
+import periodictable.augmentedimage.rendering.AugmentedImageRenderer;
+import periodictable.common.helpers.CameraPermissionHelper;
+import periodictable.common.helpers.DisplayRotationHelper;
+import periodictable.common.helpers.FullScreenHelper;
+import periodictable.common.helpers.SnackbarHelper;
+import periodictable.common.helpers.TrackingStateHelper;
+import periodictable.common.rendering.BackgroundRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;

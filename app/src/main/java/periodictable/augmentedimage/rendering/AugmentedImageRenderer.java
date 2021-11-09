@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.ar.core.examples.java.augmentedimage.rendering;
+package periodictable.augmentedimage.rendering;
 
 import android.content.Context;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.Pose;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer.BlendMode;
+import periodictable.common.rendering.ObjectRenderer;
+import periodictable.common.rendering.ObjectRenderer.BlendMode;
 import java.io.IOException;
 
 /** Renders an augmented image. */

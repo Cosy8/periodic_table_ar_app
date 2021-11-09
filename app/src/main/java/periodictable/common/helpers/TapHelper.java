@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.ar.core.examples.java.common.helpers;
+package periodictable.common.helpers;
 
 import android.content.Context;
 import android.view.GestureDetector;
