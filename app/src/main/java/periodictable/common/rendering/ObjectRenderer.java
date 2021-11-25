@@ -502,4 +502,22 @@ public class ObjectRenderer {
     scaleMatrix[10] = scaleFactorZ;
     Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
   }
+
+  public void setTextureOnGLThread(Bitmap textureBitmap) {
+    // Bind the texture name already allocated.
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+    // Set the filtering for handling different sizes to render.
+    GLES20.glTexParameteri(
+            GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+
+    // Copy the bitmap contents into the texture buffer.
+    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0);
+
+    // Generate the mip map for the different sizes.
+    GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+
+    // Unbind the texture.
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+  }
 }

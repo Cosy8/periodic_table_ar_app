@@ -39,14 +39,14 @@ public class AugmentedImageRenderer {
     0x009688, 0x4CAF50, 0x8BC34A, 0xCDDC39, 0xFFEB3B, 0xFFC107, 0xFF9800,
   };
 
-  private final ObjectRenderer cardObject = new ObjectRenderer();
+  public final ObjectRenderer cardObject = new ObjectRenderer();
 
   public AugmentedImageRenderer() {}
 
-  public void createOnGlThread(Context context) throws IOException {
+  public void createOnGlThread(Context context, String Texture) throws IOException {
 
     cardObject.createOnGlThread(
-        context, "models/flat-pane/card.obj", "models/tester3_crop.png");
+        context, "models/flat-pane/card.obj", Texture);
     cardObject.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
     cardObject.setBlendMode(BlendMode.AlphaBlending);
   }

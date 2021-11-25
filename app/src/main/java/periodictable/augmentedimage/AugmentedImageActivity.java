@@ -244,7 +244,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
     try {
       // Create the texture and pass it to ARCore session to be filled during update().
       backgroundRenderer.createOnGlThread(/*context=*/ this);
-      augmentedImageRenderer.createOnGlThread(/*context=*/ this);
+      augmentedImageRenderer.createOnGlThread(/*context=*/ this, "models/tester.png");
     } catch (IOException e) {
       Log.e(TAG, "Failed to read an asset file", e);
     }
@@ -360,11 +360,13 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       Anchor centerAnchor = augmentedImageMap.get(augmentedImage.getIndex()).second;
       switch (augmentedImage.getTrackingState()) {
         case TRACKING:
-          //  Recreate 3D object and aadd ability to change the texture*****
-          augmentedImageRenderer.createOnGlThread(/*context=*/ this);
+          // Change the texture in realtime while drawing
+          Bitmap textureBitmap =
+                  BitmapFactory.decodeStream(this.getAssets().open("models/tester3.png"));
+          augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+
           augmentedImageRenderer.draw(
               viewmtx, projmtx, augmentedImage, centerAnchor, colorCorrectionRgba);
-
           break;
         default:
           break;
