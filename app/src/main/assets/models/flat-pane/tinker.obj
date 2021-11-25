@@ -3,19 +3,22 @@
 mtllib obj.mtl
 
 o obj_0
-v 0 		0.01 		0.1
-v 0 		0.01 		0
-v 0 		0 		0
-v 0 		0 		0.1
-v 0.1 		0 		0.1
-v 0.1 		0 		0
-v 0.1 		0.01 		0
-v 0.1 		0.01 		0.1
+usemtl shinyred
+v 0 	0.01 	0.1
+usemtl shinyred
+v 0 	0.01 	0
+usemtl shinyred
+v 0 	0 		0
+v 0 	0 		0.1
+v 0.1 	0 		0.1
+v 0.1 	0 		0
+v 0.1 	0.01 	0
+v 0.1 	0.01 	0.1
 # 8 vertices
 
 g group_0_15277357
 
-usemtl color_15277357
+
 s 0
 
 f 1 2 3

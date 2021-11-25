@@ -21,11 +21,13 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
@@ -70,7 +72,6 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class AugmentedImageActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
   private static final String TAG = AugmentedImageActivity.class.getSimpleName();
-
   // Rendering. The Renderers are created here, and initialized when the GL surface is created.
   private GLSurfaceView surfaceView;
   private ImageView fitToScanView;
@@ -312,7 +313,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   }
 
   private void drawAugmentedImages(
-      Frame frame, float[] projmtx, float[] viewmtx, float[] colorCorrectionRgba) {
+      Frame frame, float[] projmtx, float[] viewmtx, float[] colorCorrectionRgba) throws IOException {
     Collection<AugmentedImage> updatedAugmentedImages =
         frame.getUpdatedTrackables(AugmentedImage.class);
 
@@ -359,8 +360,11 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       Anchor centerAnchor = augmentedImageMap.get(augmentedImage.getIndex()).second;
       switch (augmentedImage.getTrackingState()) {
         case TRACKING:
+          //  Recreate 3D object and aadd ability to change the texture*****
+          augmentedImageRenderer.createOnGlThread(/*context=*/ this);
           augmentedImageRenderer.draw(
               viewmtx, projmtx, augmentedImage, centerAnchor, colorCorrectionRgba);
+
           break;
         default:
           break;
@@ -385,14 +389,8 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
 
       augmentedImageDatabase = new AugmentedImageDatabase(session);
       augmentedImageDatabase.addImage("image_name", augmentedImageBitmap);
-      // If the physical size of the image is known, you can instead use:
-      //     augmentedImageDatabase.addImage("image_name", augmentedImageBitmap, widthInMeters);
-      // This will improve the initial detection speed. ARCore will still actively estimate the
-      // physical size of the image as it is viewed from multiple viewpoints.
     } else {
-      // This is an alternative way to initialize an AugmentedImageDatabase instance,
-      // load a pre-existing augmented image database.
-      try (InputStream is = getAssets().open("sample_database.imgdb")) {
+      try (InputStream is = getAssets().open("periodic_table_pictures/periodic_table_db.imgdb")) {
         augmentedImageDatabase = AugmentedImageDatabase.deserialize(session, is);
       } catch (IOException e) {
         Log.e(TAG, "IO exception loading augmented image database.", e);

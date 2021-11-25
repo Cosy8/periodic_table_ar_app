@@ -18,9 +18,17 @@ package periodictable.common.rendering;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
 import de.javagl.obj.ObjReader;
@@ -141,6 +149,19 @@ public class ObjectRenderer {
     // Read the texture.
     Bitmap textureBitmap =
         BitmapFactory.decodeStream(context.getAssets().open(diffuseTextureAssetName));
+    // Create a textview texture
+    /**TextView textV = new TextView(context);
+    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(128, 128);
+    textV.setLayoutParams(layoutParams);
+    textV.setTextColor(Color.WHITE);
+    textV.setBackgroundColor(Color.BLUE);
+    textV.setGravity(Gravity.CENTER);
+    textV.setText("TEST");
+    Bitmap textviewBitmap = Bitmap.createBitmap( textV.getLayoutParams().width, textV.getLayoutParams().height, Bitmap.Config.ARGB_8888);
+    Canvas c = new Canvas(textviewBitmap);
+    textV.layout(0, 0, textV.getLayoutParams().width, textV.getLayoutParams().height);
+    textV.draw(c);
+    textV.setDrawingCacheEnabled(false);**/
 
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glGenTextures(textures.length, textures, 0);
@@ -154,6 +175,7 @@ public class ObjectRenderer {
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
     textureBitmap.recycle();
+    //textviewBitmap.recycle();
 
     ShaderUtil.checkGLError(TAG, "Texture loading");
 

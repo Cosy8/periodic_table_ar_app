@@ -16,6 +16,11 @@
 package periodictable.augmentedimage.rendering;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
+import android.opengl.GLUtils;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.Pose;
@@ -34,16 +39,16 @@ public class AugmentedImageRenderer {
     0x009688, 0x4CAF50, 0x8BC34A, 0xCDDC39, 0xFFEB3B, 0xFFC107, 0xFF9800,
   };
 
-  private final ObjectRenderer imageFrameUpperLeft = new ObjectRenderer();
+  private final ObjectRenderer cardObject = new ObjectRenderer();
 
   public AugmentedImageRenderer() {}
 
   public void createOnGlThread(Context context) throws IOException {
 
-    imageFrameUpperLeft.createOnGlThread(
-        context, "models/flat-pane/tinker.obj", "models/frame_base.png");
-    imageFrameUpperLeft.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
-    imageFrameUpperLeft.setBlendMode(BlendMode.AlphaBlending);
+    cardObject.createOnGlThread(
+        context, "models/flat-pane/card.obj", "models/tester3_crop.png");
+    cardObject.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
+    cardObject.setBlendMode(BlendMode.AlphaBlending);
   }
 
   public void draw(
@@ -54,12 +59,11 @@ public class AugmentedImageRenderer {
       float[] colorCorrectionRgba) {
     float[] tintColor =
         convertHexToColor(TINT_COLORS_HEX[augmentedImage.getIndex() % TINT_COLORS_HEX.length]);
-
     Pose[] localBoundaryPoses = {
       Pose.makeTranslation(
-          -0.5f * augmentedImage.getExtentX(),
+          0.0f * augmentedImage.getExtentX(),
           0.0f,
-          -0.5f * augmentedImage.getExtentZ()) // upper left
+          0.0f * augmentedImage.getExtentZ())
     };
 
     Pose anchorPose = centerAnchor.getPose();
@@ -68,12 +72,12 @@ public class AugmentedImageRenderer {
       worldBoundaryPoses[i] = anchorPose.compose(localBoundaryPoses[i]);
     }
 
-    float scaleFactor = 1.0f;
+    float scaleFactor = 0.05f;
     float[] modelMatrix = new float[16];
 
     worldBoundaryPoses[0].toMatrix(modelMatrix, 0);
-    imageFrameUpperLeft.updateModelMatrix(modelMatrix, scaleFactor);
-    imageFrameUpperLeft.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);
+    cardObject.updateModelMatrix(modelMatrix, scaleFactor);
+    cardObject.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);
   }
 
   private static float[] convertHexToColor(int colorHex) {
@@ -83,4 +87,5 @@ public class AugmentedImageRenderer {
     float blue = (colorHex & 0x0000FF) / 255.0f * TINT_INTENSITY;
     return new float[] {red, green, blue, TINT_ALPHA};
   }
+
 }
