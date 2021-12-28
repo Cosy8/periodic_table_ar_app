@@ -1,1 +1,3 @@
-hydrogen.jpg|periodic_table_pictures/hydrogen.jpg
+helium.jpg|D:/blair/Documents/University/OS/pictures/periodic_table_pictures/helium.jpg
+hydrogen.jpg|D:/blair/Documents/University/OS/pictures/periodic_table_pictures/hydrogen.jpg
+lithium.jpg|D:/blair/Documents/University/OS/pictures/periodic_table_pictures/lithium.jpg
