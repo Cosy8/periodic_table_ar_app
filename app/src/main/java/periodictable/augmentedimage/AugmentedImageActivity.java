@@ -328,20 +328,29 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
           break;
 
         case TRACKING:
-          // Have to switch to UI Thread to update View.
-          this.runOnUiThread(
-              new Runnable() {
-                @Override
-                public void run() {
-                  fitToScanView.setVisibility(View.GONE);
-                }
-              });
+          if(augmentedImage.getTrackingMethod()==AugmentedImage.TrackingMethod.FULL_TRACKING) {
+            text = String.format("Full tracking");
+            messageSnackbarHelper.showMessage(this, text);
+            // Have to switch to UI Thread to update View.
+            this.runOnUiThread(
+                    new Runnable() {
+                      @Override
+                      public void run() {
+                        fitToScanView.setVisibility(View.GONE);
+                      }
+                    });
 
-          // Create a new anchor for newly found images.
-          if (!augmentedImageMap.containsKey(augmentedImage.getIndex())) {
-            Anchor centerPoseAnchor = augmentedImage.createAnchor(augmentedImage.getCenterPose());
-            augmentedImageMap.put(
-                augmentedImage.getIndex(), Pair.create(augmentedImage, centerPoseAnchor));
+            // Create a new anchor for newly found images.
+            if (!augmentedImageMap.containsKey(augmentedImage.getIndex())) {
+              Anchor centerPoseAnchor = augmentedImage.createAnchor(augmentedImage.getCenterPose());
+              augmentedImageMap.put(
+                      augmentedImage.getIndex(), Pair.create(augmentedImage, centerPoseAnchor));
+            }
+          }
+          else{
+            text = String.format("Not full tracking");
+            messageSnackbarHelper.showMessage(this, text);
+            augmentedImageMap.remove(augmentedImage.getIndex());
           }
           break;
 
