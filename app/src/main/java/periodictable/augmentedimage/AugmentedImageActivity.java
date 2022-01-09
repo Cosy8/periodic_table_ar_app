@@ -323,14 +323,14 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
         case PAUSED:
           // When an image is in PAUSED state, but the camera is not PAUSED, it has been detected,
           // but not yet tracked.
-          String text = String.format("Detected Image %d", augmentedImage.getIndex());
-          messageSnackbarHelper.showMessage(this, text);
+          //String text = String.format("Detected Image: %s", augmentedImage.getName());
+          //messageSnackbarHelper.showMessage(this, text);
           break;
 
         case TRACKING:
           if(augmentedImage.getTrackingMethod()==AugmentedImage.TrackingMethod.FULL_TRACKING) {
-            text = String.format("Full tracking");
-            messageSnackbarHelper.showMessage(this, text);
+            // messageSnackbarHelper.showMessage(this, "Full tracking");
+
             // Have to switch to UI Thread to update View.
             this.runOnUiThread(
                     new Runnable() {
@@ -348,8 +348,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
             }
           }
           else{
-            text = String.format("Not full tracking");
-            messageSnackbarHelper.showMessage(this, text);
+            // messageSnackbarHelper.showMessage(this, "Not full tracking");
             augmentedImageMap.remove(augmentedImage.getIndex());
           }
           break;
@@ -369,13 +368,18 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       Anchor centerAnchor = augmentedImageMap.get(augmentedImage.getIndex()).second;
       switch (augmentedImage.getTrackingState()) {
         case TRACKING:
-          // Change the texture in realtime while drawing
-          Bitmap textureBitmap =
-                  BitmapFactory.decodeStream(this.getAssets().open("models/tester3.png"));
-          augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+          if(augmentedImage.getTrackingMethod()==AugmentedImage.TrackingMethod.FULL_TRACKING) {
+            String text = String.format("Detected Image: %s", augmentedImage.getName());
+            messageSnackbarHelper.showMessage(this, text);
 
-          augmentedImageRenderer.draw(
-              viewmtx, projmtx, augmentedImage, centerAnchor, colorCorrectionRgba);
+            // Change the texture in realtime while drawing
+            Bitmap textureBitmap =
+                    BitmapFactory.decodeStream(this.getAssets().open("models/template.png"));
+            augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+
+            augmentedImageRenderer.draw(
+                    viewmtx, projmtx, augmentedImage, centerAnchor, colorCorrectionRgba);
+          }
           break;
         default:
           break;
@@ -401,7 +405,9 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       augmentedImageDatabase = new AugmentedImageDatabase(session);
       augmentedImageDatabase.addImage("image_name", augmentedImageBitmap);
     } else {
-      try (InputStream is = getAssets().open("periodic_table_pictures/periodic_table_db.imgdb")) {
+      // NewCellDatabase/Photoshopped/NewCellDatabase.imgdb
+      // periodic_table_pictures/periodic_table_db.imgdb
+      try (InputStream is = getAssets().open("NewCellDatabase/Photoshopped/NewCellDatabase.imgdb")) {
         augmentedImageDatabase = AugmentedImageDatabase.deserialize(session, is);
       } catch (IOException e) {
         Log.e(TAG, "IO exception loading augmented image database.", e);
