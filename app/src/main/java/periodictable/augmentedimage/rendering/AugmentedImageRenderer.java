@@ -72,7 +72,9 @@ public class AugmentedImageRenderer {
       worldBoundaryPoses[i] = anchorPose.compose(localBoundaryPoses[i]);
     }
 
-    float scaleFactor = 0.05f;
+    final float maxImageEdgeSize = Math.max(augmentedImage.getExtentX(), augmentedImage.getExtentZ()); // Get largest detected image edge size
+    final float objectEdgeSize = 2f;
+    float scaleFactor = maxImageEdgeSize / objectEdgeSize;  // Sets the augmented image size to fill the element
     float[] modelMatrix = new float[16];
 
     worldBoundaryPoses[0].toMatrix(modelMatrix, 0);
