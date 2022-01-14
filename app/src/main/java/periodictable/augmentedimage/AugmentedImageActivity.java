@@ -244,7 +244,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
     try {
       // Create the texture and pass it to ARCore session to be filled during update().
       backgroundRenderer.createOnGlThread(/*context=*/ this);
-      augmentedImageRenderer.createOnGlThread(/*context=*/ this, "models/tester.png");
+      augmentedImageRenderer.createOnGlThread(/*context=*/ this, "models/textures/template.png");
     } catch (IOException e) {
       Log.e(TAG, "Failed to read an asset file", e);
     }
@@ -372,10 +372,14 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
             String text = String.format("Detected Image: %s", augmentedImage.getName());
             messageSnackbarHelper.showMessage(this, text);
 
-            // Change the texture in realtime while drawing
-            Bitmap textureBitmap =
-                    BitmapFactory.decodeStream(this.getAssets().open("models/template.png"));
-            augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+            try {
+              change_texture(augmentedImage);
+            }
+            catch (IOException e) {
+              Bitmap textureBitmap =
+                      BitmapFactory.decodeStream(this.getAssets().open("models/textures/template.png"));
+              augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+            }
 
             augmentedImageRenderer.draw(
                     viewmtx, projmtx, augmentedImage, centerAnchor, colorCorrectionRgba);
@@ -385,6 +389,17 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
           break;
       }
     }
+  }
+
+  private boolean change_texture(AugmentedImage augmentedImage) throws IOException {
+    String texture = String.format("models/textures/elements/%s", augmentedImage.getName());
+
+    // Change the texture in realtime while drawing
+    Bitmap textureBitmap =
+            BitmapFactory.decodeStream(this.getAssets().open(texture));
+    augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+
+    return true;
   }
 
   private boolean setupAugmentedImageDatabase(Config config) {
