@@ -23,7 +23,7 @@
       android:id="@+id/surfaceview"
       android:layout_width="fill_parent"
       android:layout_height="fill_parent"
-      android:layout_gravity="top"/>
+      android:layout_gravity="center"/>
 
   <ImageView
       android:id="@+id/image_view_fit_to_scan"
@@ -32,5 +32,35 @@
       android:layout_gravity="center"
       android:scaleType="fitCenter"
       />
+
+  <LinearLayout
+      android:id="@+id/start_page"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      android:background="#A3E1EA"
+      android:gravity="center"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="299dp"
+        android:layout_gravity="fill_vertical"
+        android:fontFamily="sans-serif-black"
+        android:gravity="start"
+        android:text="Periodic Table Augmented Reality App"
+        android:textColor="#FFFFFF"
+        android:textSize="60sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Start" />
+
+  </LinearLayout>
+
 
 </FrameLayout>

@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -119,6 +120,13 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
         .into(fitToScanView);
 
     installRequested = false;
+
+    Button button = (Button) findViewById(R.id.button);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        findViewById(R.id.start_page).setVisibility(View.GONE);
+      }
+    });
   }
 
   @Override
