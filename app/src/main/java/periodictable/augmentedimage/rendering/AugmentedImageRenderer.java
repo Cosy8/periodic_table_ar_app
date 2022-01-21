@@ -47,7 +47,7 @@ public class AugmentedImageRenderer {
 
     cardObject.createOnGlThread(
         context, "models/flat-pane/card.obj", Texture);
-    cardObject.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
+    cardObject.setMaterialProperties(0.0f, 3.5f, 0.0f, 6.0f);
     cardObject.setBlendMode(BlendMode.AlphaBlending);
   }
 
