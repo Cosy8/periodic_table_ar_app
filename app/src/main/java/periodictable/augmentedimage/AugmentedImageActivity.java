@@ -22,9 +22,12 @@ import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -40,6 +43,7 @@ import com.google.ar.core.AugmentedImageDatabase;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import periodictable.augmentedimage.rendering.AugmentedImageRenderer;
 import periodictable.common.helpers.CameraPermissionHelper;
@@ -58,6 +62,8 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -77,10 +83,12 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   private GLSurfaceView surfaceView;
   private ImageView fitToScanView;
   private RequestManager glideRequestManager;
+  private GestureDetector mGestureDetector;
 
   private boolean installRequested;
 
   private Session session;
+  private Frame frame;
   private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();
   private DisplayRotationHelper displayRotationHelper;
   private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this);
@@ -89,6 +97,9 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   private final AugmentedImageRenderer augmentedImageRenderer = new AugmentedImageRenderer();
 
   private boolean shouldConfigureSession = false;
+
+  int viewWidth = 0;
+  int viewHeight = 0;
 
   // Augmented image configuration and rendering.
   // Load a single image (true) or a pre-generated image database (false).
@@ -104,6 +115,31 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
     setContentView(R.layout.activity_main);
     surfaceView = findViewById(R.id.surfaceview);
     displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
+
+    // Set up tap listener.
+    mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+      @Override
+      public boolean onSingleTapUp(MotionEvent e) {
+        try {
+          onSingleTap(e);
+        } catch (CameraNotAvailableException | IOException exception) {
+          exception.printStackTrace();
+        }
+        return true;
+      }
+
+      @Override
+      public boolean onDown(MotionEvent e) {
+        return true;
+      }
+    });
+
+    surfaceView.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        return mGestureDetector.onTouchEvent(event);
+      }
+    });
 
     // Set up renderer.
     surfaceView.setPreserveEGLContextOnPause(true);
@@ -121,12 +157,75 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
 
     installRequested = false;
 
+    // When the start button is clicked, remove the start page.
     Button button = (Button) findViewById(R.id.button);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
         findViewById(R.id.start_page).setVisibility(View.GONE);
       }
     });
+  }
+
+  private void onSingleTap(MotionEvent e) throws CameraNotAvailableException, IOException {
+    boolean isHit = false;
+    Camera camera = null;
+
+    // Get current session and frame
+    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+    if (session == null) {
+      return;
+    }
+    displayRotationHelper.updateSessionIfNeeded(session);
+    try {
+      session.setCameraTextureName(backgroundRenderer.getTextureId());
+      camera = frame.getCamera();
+    }
+    catch (Throwable t) {
+      // Avoid crashing the application due to unhandled exceptions.
+      Log.e(TAG, "Exception on tap event", t);
+    }
+
+    for (Map.Entry<Integer, Pair<AugmentedImage, Anchor>> augImageEntry : augmentedImageMap.entrySet()){
+      AugmentedImage augImage = (AugmentedImage) augImageEntry.getValue().first;
+      Pose center = augImage.getCenterPose();
+
+      float[] mAnchorMatrix = new float[100];
+      float[] centerVertexOf3dObject = {0f, 0f, 0f, 1};
+      float[] vertexResult = new float[4];
+      float[] projmtx = new float[16];
+      float[] viewmtx = new float[16];
+      final float[] colorCorrectionRgba = new float[4];
+
+      // Get projection matrix.
+      camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);
+      // Get camera matrix and draw
+      camera.getViewMatrix(viewmtx, 0);
+      // Compute lighting from average intensity of the image.
+      frame.getLightEstimate().getColorCorrection(colorCorrectionRgba, 0);
+
+      center.toMatrix(mAnchorMatrix, 0);
+      augmentedImageRenderer.cardObject.updateModelMatrix(mAnchorMatrix, 1);
+      augmentedImageRenderer.cardObject.draw(viewmtx, projmtx, colorCorrectionRgba);
+
+      Matrix.multiplyMV(vertexResult, 0,
+              augmentedImageRenderer.cardObject.getModelViewProjectionMatrix(), 0,
+              centerVertexOf3dObject, 0);
+
+      //Math to check tap hit on object
+      float cardHitAreaRadius = augImage.getExtentX();
+      float radius = (viewWidth / 2) * (cardHitAreaRadius / vertexResult[3]);
+      float dx = e.getX() - (viewWidth / 2) * (1 + vertexResult[0] / vertexResult[3]);
+      float dy = e.getY() - (viewHeight / 2) * (1 - vertexResult[1] / vertexResult[3]);
+      double distance = Math.sqrt(dx * dx + dy * dy);
+      isHit = distance < radius;
+
+      if (isHit) {
+        Log.i(TAG, "Tap hit on " + augImage.getName());
+        change_texture(augImage, augmentedImageRenderer.cardObject.current_texture_name);
+      }
+    }
+
+    //messageSnackbarHelper.showMessage(this, "hit?" + isHit);
   }
 
   @Override
@@ -262,6 +361,8 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   public void onSurfaceChanged(GL10 gl, int width, int height) {
     displayRotationHelper.onSurfaceChanged(width, height);
     GLES20.glViewport(0, 0, width, height);
+    viewWidth = width;
+    viewHeight = height;
   }
 
   @Override
@@ -282,7 +383,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       // Obtain the current frame from ARSession. When the configuration is set to
       // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
       // camera framerate.
-      Frame frame = session.update();
+      frame = session.update();
       Camera camera = frame.getCamera();
 
       // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
@@ -377,16 +478,25 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       switch (augmentedImage.getTrackingState()) {
         case TRACKING:
           if(augmentedImage.getTrackingMethod()==AugmentedImage.TrackingMethod.FULL_TRACKING) {
-            String text = String.format("Detected Image: %s", augmentedImage.getName());
-            messageSnackbarHelper.showMessage(this, text);
+            //String text = String.format("Detected Image: %s", augmentedImage.getName());
+            //messageSnackbarHelper.showMessage(this, text);
 
             try {
-              change_texture(augmentedImage);
+              if (augmentedImageRenderer.cardObject.current_texture_name == "info" || augmentedImageRenderer.cardObject.current_texture_name == "default") {
+                Bitmap textureBitmap =
+                        BitmapFactory.decodeStream(this.getAssets().open(String.format("models/textures/element_info/%s", augmentedImage.getName())));
+                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "info");
+              }
+              else {
+                Bitmap textureBitmap =
+                        BitmapFactory.decodeStream(this.getAssets().open(String.format("models/textures/element_pictures/%s", augmentedImage.getName())));
+                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "picture");
+              }
             }
             catch (IOException e) {
               Bitmap textureBitmap =
                       BitmapFactory.decodeStream(this.getAssets().open("models/textures/template.png"));
-              augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+              augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "default");
             }
 
             augmentedImageRenderer.draw(
@@ -399,14 +509,25 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
     }
   }
 
-  private boolean change_texture(AugmentedImage augmentedImage) throws IOException {
-    String texture = String.format("models/textures/elements/%s", augmentedImage.getName());
+  private boolean change_texture(AugmentedImage augmentedImage, String current_texture) throws IOException {
+    String texture;
+    String new_texture_name;
+
+    if (current_texture == "info") {
+      texture = String.format("models/textures/element_pictures/%s", augmentedImage.getName());
+      new_texture_name = "picture";
+    }
+    else {
+      texture = String.format("models/textures/element_info/%s", augmentedImage.getName());
+      new_texture_name = "info";
+    }
 
     // Change the texture in realtime while drawing
     Bitmap textureBitmap =
             BitmapFactory.decodeStream(this.getAssets().open(texture));
-    augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+    augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, new_texture_name);
 
+    Log.i(TAG, "Texture changed to: " + texture);
     return true;
   }
 
