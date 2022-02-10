@@ -18,16 +18,9 @@ package periodictable.common.rendering;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.Gravity;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
@@ -46,6 +39,10 @@ import java.util.TreeMap;
 /** Renders an object loaded from an OBJ file in OpenGL. */
 public class ObjectRenderer {
   private static final String TAG = ObjectRenderer.class.getSimpleName();
+
+  public float[] getModelViewProjectionMatrix() {
+    return modelViewProjectionMatrix;
+  }
 
   /**
    * Blend mode.
@@ -80,6 +77,7 @@ public class ObjectRenderer {
 
   private int program;
   private final int[] textures = new int[1];
+  public String current_texture_name = "default";
 
   // Shader location: model view projection matrix.
   private int modelViewUniform;
@@ -503,7 +501,10 @@ public class ObjectRenderer {
     Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
   }
 
-  public void setTextureOnGLThread(Bitmap textureBitmap) {
+  public void setTextureOnGLThread(Bitmap textureBitmap, String texture_name) {
+    //set the current texture name
+    current_texture_name = texture_name;
+
     // Bind the texture name already allocated.
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
     // Set the filtering for handling different sizes to render.
@@ -520,4 +521,5 @@ public class ObjectRenderer {
     // Unbind the texture.
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
   }
+
 }
