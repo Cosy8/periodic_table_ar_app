@@ -77,7 +77,6 @@ public class ObjectRenderer {
 
   private int program;
   private final int[] textures = new int[1];
-  public String current_texture_name = "default";
 
   // Shader location: model view projection matrix.
   private int modelViewUniform;
@@ -501,10 +500,7 @@ public class ObjectRenderer {
     Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
   }
 
-  public void setTextureOnGLThread(Bitmap textureBitmap, String texture_name) {
-    //set the current texture name
-    current_texture_name = texture_name;
-
+  public void setTextureOnGLThread(Bitmap textureBitmap) {
     // Bind the texture name already allocated.
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
     // Set the filtering for handling different sizes to render.

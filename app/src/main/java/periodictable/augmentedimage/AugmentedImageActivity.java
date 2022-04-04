@@ -57,6 +57,8 @@ import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -108,6 +110,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   // the
   // database.
   private final Map<Integer, Pair<AugmentedImage, Anchor>> augmentedImageMap = new HashMap<>();
+  private Map<Integer, String> augmentedImageTextures = new HashMap<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -221,7 +224,7 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
 
       if (isHit) {
         Log.i(TAG, "Tap hit on " + augImage.getName());
-        change_texture(augImage, augmentedImageRenderer.cardObject.current_texture_name);
+        change_texture(augImage, augmentedImageTextures.get(augImage.getIndex()));
       }
     }
 
@@ -454,16 +457,19 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
               Anchor centerPoseAnchor = augmentedImage.createAnchor(augmentedImage.getCenterPose());
               augmentedImageMap.put(
                       augmentedImage.getIndex(), Pair.create(augmentedImage, centerPoseAnchor));
+              augmentedImageTextures.put(augmentedImage.getIndex(), "info");
             }
           }
           else{
             // messageSnackbarHelper.showMessage(this, "Not full tracking");
             augmentedImageMap.remove(augmentedImage.getIndex());
+            augmentedImageTextures.remove(augmentedImage.getIndex());
           }
           break;
 
         case STOPPED:
           augmentedImageMap.remove(augmentedImage.getIndex());
+          augmentedImageTextures.remove(augmentedImage.getIndex());
           break;
 
         default:
@@ -482,21 +488,26 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
             //messageSnackbarHelper.showMessage(this, text);
 
             try {
-              if (augmentedImageRenderer.cardObject.current_texture_name == "info" || augmentedImageRenderer.cardObject.current_texture_name == "default") {
+              if (augmentedImageTextures.get(augmentedImage.getIndex()) == "info") {
                 Bitmap textureBitmap =
                         BitmapFactory.decodeStream(this.getAssets().open(String.format("models/textures/element_info/%s", augmentedImage.getName())));
-                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "info");
+                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+              }
+              else if (augmentedImageTextures.get(augmentedImage.getIndex()) == "picture"){
+                Bitmap textureBitmap =
+                        BitmapFactory.decodeStream(this.getAssets().open(String.format("models/textures/element_pictures/%s", augmentedImage.getName())));
+                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
               }
               else {
                 Bitmap textureBitmap =
-                        BitmapFactory.decodeStream(this.getAssets().open(String.format("models/textures/element_pictures/%s", augmentedImage.getName())));
-                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "picture");
+                        BitmapFactory.decodeStream(this.getAssets().open("models/textures/template.png"));
+                augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
               }
             }
             catch (IOException e) {
               Bitmap textureBitmap =
                       BitmapFactory.decodeStream(this.getAssets().open("models/textures/template.png"));
-              augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, "default");
+              augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
             }
 
             augmentedImageRenderer.draw(
@@ -522,10 +533,19 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
       new_texture_name = "info";
     }
 
-    // Change the texture in realtime while drawing
-    Bitmap textureBitmap =
-            BitmapFactory.decodeStream(this.getAssets().open(texture));
-    augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap, new_texture_name);
+    try {
+      // Change the texture in realtime while drawing
+      Bitmap textureBitmap =
+              BitmapFactory.decodeStream(this.getAssets().open(texture));
+      augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+      augmentedImageTextures.replace(augmentedImage.getIndex(), new_texture_name);
+    }
+    catch (IOException e) {
+      Bitmap textureBitmap =
+              BitmapFactory.decodeStream(this.getAssets().open("models/textures/template.png"));
+      augmentedImageRenderer.cardObject.setTextureOnGLThread(textureBitmap);
+      augmentedImageTextures.replace(augmentedImage.getIndex(), "default");
+    }
 
     Log.i(TAG, "Texture changed to: " + texture);
     return true;
