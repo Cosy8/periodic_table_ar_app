@@ -1,6 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+        }
+    }
     compileSdkVersion 31
     defaultConfig {
         applicationId "periodictable.augmentedimage"
@@ -11,6 +15,7 @@ android {
         targetSdkVersion 31
         versionCode 1
         versionName 'Alpha'
+        signingConfig signingConfigs.debug
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
